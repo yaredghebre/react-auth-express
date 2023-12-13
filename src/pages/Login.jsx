@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthProvider';
 import { handleInputChange } from '../utilities/handleInputChange';
+import axios from 'axios';
 
 const Login = () => {
   const { handleAuth } = useAuth();
   const navigate = useNavigate();
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -14,22 +16,19 @@ const Login = () => {
   const onLoginSubmit = async (e) => {
     e.preventDefault();
 
-    const resp = await new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({
-          token: '1234',
-          user: {
-            name: 'Yared',
-            surname: 'Ghebre',
-            email: formData.email,
-          },
-        });
-      }, 2000);
-    });
+    try {
+      const response = await axios.post('http://localhost:3000/login', {
+        email: formData.email,
+        password: formData.password,
+      });
 
-    handleAuth(resp);
+      handleAuth(response.data);
 
-    navigate('/posts');
+      navigate('/posts');
+    } catch (error) {
+      setError('Invalid credentials!');
+      console.error('Errore durante il login:', error);
+    }
   };
   return (
     <div>
@@ -40,6 +39,15 @@ const Login = () => {
               <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
                 Sign in to your account
               </h1>
+              {error && (
+                <div
+                  className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-800 dark:bg-gray-800 dark:text-red-400"
+                  role="alert"
+                >
+                  <span className="font-bold">{error}</span>
+                </div>
+              )}
+
               <form className="space-y-4 md:space-y-6" onSubmit={onLoginSubmit}>
                 <div>
                   <label
